@@ -15,6 +15,7 @@ def read_data(path, data_path, save_path):
     labels = []
     images = []
     next_bbs = False
+    ready = False
     number_to_read = 0
     number = 0
     with open(path, "r") as f:
@@ -30,15 +31,17 @@ def read_data(path, data_path, save_path):
                 values = line.split(" ")
                 bboxes.append((int(values[0]), int(values[1]), int(values[2]), int(values[3])))
                 number_to_read -= 1
-            elif number_to_read == 0:
+                if number_to_read == 0:
+                    ready = True
+            if ready:
                 for bbox in bboxes:
                     img = cv2.imread(data_path + name)
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     img_neg, found = get_negative(img, bbox, bboxes)
                     if found:
                         try:
-                            img_pos = img[int(values[1]):int(values[1]) + int(values[3]),
-                                          int(values[0]):int(values[0]) + int(values[2])]
+                            img_pos = img[bbox[1]:bbox[1] + bbox[3],
+                                          bbox[0]:bbox[0] + bbox[2]]
                             if img_pos.shape[0] > 25 or img_pos.shape[1] > 25:
                                 interpolation = cv2.INTER_AREA
                             else:
@@ -53,6 +56,9 @@ def read_data(path, data_path, save_path):
                         bad_files.append(name)
                     number += 1
                     print(f"Done number {number}")
+                bboxes = []
+                ready = False
+
 
     with open("bad_files.txt", "w") as f:
         for bad in bad_files:
