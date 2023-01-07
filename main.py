@@ -3,15 +3,14 @@ from keras import layers
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import cv2
+import os
 import numpy as np
 
 
-def read_data(path, data_path, save_path):
-    # bad_files = ["File WIDER_train/images/11--Meeting/11_Meeting_Meeting_11_Meeting_Meeting_11_531.jpg", "WIDER_train/images/11--Meeting/11_Meeting_Meeting_11_Meeting_Meeting_11_114.jpg", "WIDER_train/images/11--Meeting/11_Meeting_Meeting_11_Meeting_Meeting_11_319.jpg","WIDER_train/images/10--People_Marching/10_People_Marching_People_Marching_2_164.jpg", "WIDER_train/images/10--People_Marching/10_People_Marching_People_Marching_2_417.jpg", "WIDER_train/images/10--People_Marching/10_People_Marching_People_Marching_2_476.jpg", "WIDER_train/images/10--People_Marching/10_People_Marching_People_Marching_10_People_Marching_People_Marching_10_People_Marching_People_Marching_10_445.jpg", "WIDER_train/images/10--People_Marching/10_People_Marching_People_Marching_10_People_Marching_People_Marching_10_People_Marching_People_Marching_10_1000.jpg", "WIDER_train/images/1--Handshaking/1_Handshaking_Handshaking_1_545.jpg", "WIDER_train/images/1--Handshaking/1_Handshaking_Handshaking_1_722.jpg", "WIDER_train/images/1--Handshaking/1_Handshaking_Handshaking_1_730.jpg", "WIDER_train/images/1--Handshaking/1_Handshaking_Handshaking_1_333.jpg", "WIDER_train/images/1--Handshaking/1_Handshaking_Handshaking_1_515.jpg", "WIDER_train/images/1--Handshaking/1_Handshaking_Handshaking_1_254.jpg", "WIDER_train/images/0--Parade/0_Parade_Parade_0_52.jpg", "WIDER_train/images/0--Parade/0_Parade_Parade_0_179.jpg", "WIDER_train/images/0--Parade/0_Parade_marchingband_1_237.jpg", "WIDER_train/images/0--Parade/0_Parade_Parade_0_926.jpg", "WIDER_train/images/0--Parade/0_Parade_marchingband_1_1031.jpg", "WIDER_train/images/0--Parade/0_Parade_marchingband_1_615.jpg", "WIDER_train/images/0--Parade/0_Parade_Parade_0_570.jpg", "WIDER_train/images/0--Parade/0_Parade_Parade_0_939.jpg", "WIDER_train/images/0--Parade/0_Parade_Parade_0_763.jpg"]
+def prepare_dataset(path, data_path, save_path):
     bad_files = []
     empty_pos = []
     bboxes = []
-    names = []
     labels = []
     images = []
     next_bbs = False
@@ -59,15 +58,12 @@ def read_data(path, data_path, save_path):
                 bboxes = []
                 ready = False
 
-
     with open("bad_files.txt", "w") as f:
         for bad in bad_files:
             print(f"{bad}\n", f)
     with open("empty_pos.txt", "w") as f:
         for empty in empty_pos:
             print(f"{empty}\n", f)
-    # for name in names:
-    #     images.append(cv2.imread(data_path + name))
     return images, labels
 
 
@@ -89,6 +85,37 @@ def get_negative(image, bbx, bbxs):
         neg = image[x:x + bbx[3], y:y + bbx[2]]
         found = True
     return neg, found
+
+
+
+def load_dataset():
+    np.random.seed(42)
+    train = []
+    val = []
+    directories = [f"dataset/train/1", f"dataset/train/0", f"dataset/val/1", f"dataset/val/0"]
+    for directory in directories:
+        for nr, filename in enumerate(sorted(list(os.listdir(directory)))):
+            if nr % 10:
+                print(filename)
+                print(nr)
+            file = os.path.join(directory, filename)
+            img = cv2.imread(file)
+            label = directory.split("/")[-1]
+            if directory.split("/")[-2] == "train":
+                train.append((img, int(label)))
+            else:
+                val.append((img, int(label)))
+    np.random.shuffle(train)
+    np.random.shuffle(val)
+    x_train, y_train = zip(*train)
+    x_train = np.array(x_train, dtype=float)
+    y_train = np.array(y_train, dtype=float)
+    train = (x_train, y_train)
+    x_val, y_val = zip(*val)
+    x_val = np.array(x_val, dtype=float)
+    y_val = np.array(y_val, dtype=float)
+    val = (x_val, y_val)
+    return train, val
 
 
 def detect(frame, cascade):
@@ -135,8 +162,10 @@ def get_model():
         layers.Dropout(0.2),
         layers.Dense(1, activation='sigmoid')
     ])
+    far = tf.keras.metrics.FalsePositives(name="FP")
+    frr = tf.keras.metrics.FalseNegatives(name="FN")
     loss = keras.losses.BinaryCrossentropy()
-    model.compile(optimizer="Adam", loss=loss, metrics=["accuracy"])
+    model.compile(optimizer="Adam", loss=loss, metrics=["accuracy", loss, far, frr])
     return model
 
 
@@ -144,8 +173,8 @@ def training(train, val, epochs):
     model = get_model()
     x_train, y_train = train
     x_val, y_val = val
-    my_callbacks = [tf.keras.callbacks.EarlyStopping(patience=10),
-                    tf.keras.callbacks.ModelCheckpoint(filepath='./checkpoints/model.{epoch:02d}-{val_loss:.2f}.h5'),
+    my_callbacks = [tf.keras.callbacks.EarlyStopping(patience=3),
+                    tf.keras.callbacks.ModelCheckpoint(filepath='./best_model.h5'),
                     tf.keras.callbacks.TensorBoard(log_dir='./logs'), ]
     history = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=epochs, callbacks=my_callbacks)
     return history
@@ -167,9 +196,12 @@ def plot_hist(history):
 
 
 def main():
-    dirs = ["wider_face_split/wider_face_train_bbx_gt.txt", "wider_face_split/wider_face_val_bbx_gt.txt"]
-    train_names, train_labels = read_data(dirs[0], "WIDER_train/images/", "dataset/train/")
-    val_names, val_labels = read_data(dirs[1], "WIDER_val/images/", "dataset/val/")
+    # dirs = ["wider_face_split/wider_face_train_bbx_gt.txt", "wider_face_split/wider_face_val_bbx_gt.txt"]
+    # train_names, train_labels = prepare_dataset(dirs[0], "WIDER_train/images/", "dataset/train/")
+    # val_names, val_labels = prepare_dataset(dirs[1], "WIDER_val/images/", "dataset/val/")
+    train, val = load_dataset()
+    hist = training(train, val, 100)
+    plot_hist(hist)
 
 
 if __name__ == "__main__":
