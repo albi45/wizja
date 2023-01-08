@@ -2,3 +2,8 @@ WIDER_val/
 WIDER_train/
 WIDER_test/
 wider_face_split/
+dataset/
+bad_files.txt
+empty_pos.txt
+.idea/
+logs/
