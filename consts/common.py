@@ -1,0 +1,2 @@
+IMG_SIZE = 25
+SEED = 42
