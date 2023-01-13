@@ -83,11 +83,13 @@ def anonymize_face(frame, cascade, model, single_shot=False):
     frame_gray = cv2.equalizeHist(frame_gray)
     faces = cascade.detectMultiScale(frame_gray, 1.05, 3)
     for (x, y, w, h) in faces:
-        face_roi = frame[y:y + h, x:x + w]
-        blurred = cv2.medianBlur(face_roi, 99)
-        frame[y:y+h, x:x+w] = blurred
+        # face_roi = frame[y:y + h, x:x + w]
+        # blurred = cv2.medianBlur(face_roi, 99)
+        # frame[y:y+h, x:x+w] = blurred
         result = predict(model, frame_gray[y:y+h, x:x+w])
         if result == 1:
+            face_roi = frame[y:y + h, x:x + w]
+            blurred = cv2.medianBlur(face_roi, 99)
             frame[y:y+h, x:x+w] = blurred
     cv2.imshow('Capture - Face detection', frame)
     if single_shot:
