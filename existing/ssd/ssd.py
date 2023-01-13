@@ -5,8 +5,8 @@ import time
 
 def ssd_detect_on_img(filename, save_img=False, saved_img_path=None):
     ssd_model = cv2.dnn.readNetFromCaffe(
-    'ssd/deploy.prototxt',
-    'ssd/res10_300x300_ssd_iter_140000.caffemodel')
+    'ssd_model/deploy.prototxt',
+    'ssd_model/res10_300x300_ssd_iter_140000.caffemodel')
 
     img = cv2.imread(filename)
     face_model = ssd_model
@@ -55,8 +55,8 @@ def ssd_detect_on_img(filename, save_img=False, saved_img_path=None):
 
 def ssd_anonymize_on_video(filename, save_to_avi=False, show_fps=False):
     ssd_model = cv2.dnn.readNetFromCaffe(
-    'ssd/deploy.prototxt',
-    'ssd/res10_300x300_ssd_iter_140000.caffemodel')
+    'ssd_model/deploy.prototxt',
+    'ssd_model/res10_300x300_ssd_iter_140000.caffemodel')
 
     face_blob_height = 300
     face_average_color = (104, 177, 123)
