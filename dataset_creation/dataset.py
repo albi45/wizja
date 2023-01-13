@@ -83,7 +83,7 @@ def get_negative(image, bbx, bbxs):
 
 def val_test_split():
     np.random.seed(SEED)
-    directories = [f"dataset/val/1", f"dataset/val/0"]
+    directories = [f"../dataset/val/1", f"../dataset/val/0"]
     for directory in directories:
         folder = directory.split("/")[-1]
         files = list(os.listdir(directory))
@@ -92,13 +92,13 @@ def val_test_split():
         files = files[:half]
         for file in files:
             src = f"{directory}/{file}"
-            shutil.move(src, f"dataset/test/{folder}/{file}")
+            shutil.move(src, f"../dataset/test/{folder}/{file}")
 
 
 def main():
-    dirs = ["wider_face_split/wider_face_train_bbx_gt.txt", "wider_face_split/wider_face_val_bbx_gt.txt"]
-    prepare_dataset(dirs[0], "WIDER_train/images/", "dataset/train/")
-    prepare_dataset(dirs[1], "WIDER_val/images/", "dataset/val/")
+    dirs = ["../wider_face_split/wider_face_train_bbx_gt.txt", "../wider_face_split/wider_face_val_bbx_gt.txt"]
+    prepare_dataset(dirs[0], "../WIDER_train/images/", "../dataset/train/")
+    prepare_dataset(dirs[1], "../WIDER_val/images/", "../dataset/val/")
 
 
 if __name__ == '__main__':

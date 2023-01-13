@@ -16,7 +16,7 @@ def load_dataset():
     train = []
     val = []
     test = []
-    directories = [f"dataset/train/1", f"dataset/train/0", f"dataset/val/1", f"dataset/val/0", f"dataset/test/1", f"dataset/test/0"]
+    directories = [f"../dataset/train/1", f"../dataset/train/0", f"../dataset/val/1", f"../dataset/val/0", f"../dataset/test/1", f"../dataset/test/0"]
     for directory in directories:
         for nr, filename in enumerate(sorted(list(os.listdir(directory)))):
             if nr % 10:
@@ -25,7 +25,6 @@ def load_dataset():
             file = os.path.join(directory, filename)
             img = cv2.imread(file)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            #img = np.resize(img, (25, 25, 1))
             label = directory.split("/")[-1]
             if directory.split("/")[-2] == "train":
                 train.append((img, int(label)))
@@ -79,8 +78,8 @@ def training(train, val, epochs):
     x_train, y_train = train
     x_val, y_val = val
     my_callbacks = [tf.keras.callbacks.EarlyStopping(patience=3),
-                    tf.keras.callbacks.ModelCheckpoint(filepath='./best_model.h5'),
-                    tf.keras.callbacks.TensorBoard(log_dir='./logs'), ]
+                    tf.keras.callbacks.ModelCheckpoint(filepath='../best_model.h5'),
+                    tf.keras.callbacks.TensorBoard(log_dir='../logs'), ]
     history = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=epochs, callbacks=my_callbacks)
     return history
 
@@ -112,7 +111,7 @@ def evaluate(data):
     far = 0
     frr = 0
     length = x.shape[0]
-    model = keras.models.load_model('./best_model.h5', compile=False)
+    model = keras.models.load_model('../best_model.h5', compile=False)
     results = model.predict(x)
     results = np.where(results < 0.5, 0, 1)
     for i in range(0, length):

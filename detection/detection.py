@@ -19,7 +19,7 @@ def detect(frame, cascade, model, single_shot=False):
         cv2.waitKey(0)
 
 def cascade_detect_wideo(filename=None, use_webcam=True):
-    model = keras.models.load_model('./best_model.h5', compile=False)
+    model = keras.models.load_model('../best_model.h5', compile=False)
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     if use_webcam:
         cap = cv2.VideoCapture(0)
@@ -49,7 +49,7 @@ def cascade_detect_wideo(filename=None, use_webcam=True):
                 break
 
 def cascade_detect_video(filename=None, use_webcam=True, show_fps=False):
-    model = keras.models.load_model('./best_model.h5', compile=False)
+    model = keras.models.load_model('../best_model.h5', compile=False)
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     if use_webcam:
         cap = cv2.VideoCapture(0)
@@ -96,7 +96,7 @@ def anonymize_face(frame, cascade, model, single_shot=False):
         cv2.waitKey(0)
 
 def anonymize_on_video(filename=None, use_webcam=True, save_to_avi=False):
-    model = keras.models.load_model('./best_model.h5', compile=False)
+    model = keras.models.load_model('../best_model.h5', compile=False)
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     if use_webcam:
         cap = cv2.VideoCapture(0)
@@ -150,7 +150,7 @@ def anonymize_on_video(filename=None, use_webcam=True, save_to_avi=False):
                 break
 
 def cascade_detect_image(filename, save_img=False, saved_img_path=None):
-    model = keras.models.load_model('./best_model.h5', compile=False)
+    model = keras.models.load_model('../best_model.h5', compile=False)
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     frame = cv2.imread(filename)
     frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -168,7 +168,7 @@ def cascade_detect_image(filename, save_img=False, saved_img_path=None):
         cv2.destroyAllWindows()
 
 def main():
-    cascade_detect_image("WIDER_train/images/0--Parade/0_Parade_Parade_0_343.jpg")
+    cascade_detect_image("../WIDER_train/images/0--Parade/0_Parade_Parade_0_343.jpg")
 
 
 if __name__ == '__main__':
